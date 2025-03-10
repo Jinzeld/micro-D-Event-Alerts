@@ -80,5 +80,11 @@ def add_event():
     events.append(data)
     return jsonify({"success": True, "event": data})
 
+# Root route to display a message
+@app.route('/')
+def home():
+    return "Flask Microservice for Theme Preferences is Running!"
+
+
 if __name__ == '__main__':
     app.run(debug=True)
