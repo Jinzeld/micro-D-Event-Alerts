@@ -83,7 +83,7 @@ def add_event():
 # Root route to display a message
 @app.route('/')
 def home():
-    return "Flask Microservice for Theme Preferences is Running!"
+    return "Flask Microservice for Event Alerts is Running!"
 
 
 if __name__ == '__main__':
