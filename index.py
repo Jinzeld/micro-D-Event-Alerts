@@ -73,5 +73,11 @@ def check_conflicts():
         "conflicts": conflicts
     })
 
+# Root route to display a message
+@app.route('/')
+def home():
+    return "Flask Microservice for Event Alerts is Running!"
+
+
 if __name__ == '__main__':
     app.run(debug=True)
