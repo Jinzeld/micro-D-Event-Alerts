@@ -6,7 +6,6 @@
     "routes": [
         { "src": "/check_upcoming_events", "dest": "index.py" },
         { "src": "/check_conflicts", "dest": "index.py" },
-        { "src": "/add_event", "dest": "index.py" },
         { "src": "/", "dest": "index.py" }
     ]
 }
