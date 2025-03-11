@@ -8,7 +8,13 @@ events = []
 
 # Helper function to check if two events overlap
 def events_overlap(event1, event2):
-    return not (event1['end_time'] <= event2['start_time'] or event1['start_time'] >= event2['end_time'])
+    # Combine date and time for both events
+    event1_start = datetime.fromisoformat(f"{event1['event_date']}T{event1['event_time']}")
+    event1_end = event1_start + timedelta(hours=1)  # Assuming each event lasts 1 hour
+    event2_start = datetime.fromisoformat(f"{event2['event_date']}T{event2['event_time']}")
+    event2_end = event2_start + timedelta(hours=1)  # Assuming each event lasts 1 hour
+
+    return not (event1_end <= event2_start or event1_start >= event2_end)
 
 # Helper function to send notifications (mock implementation)
 def send_notification(user_id, message):
@@ -31,13 +37,14 @@ def check_upcoming_events():
     now = datetime.now()
     upcoming_events = []
     for event in user_events:
-        event_time = datetime.fromisoformat(event['start_time'])
-        if now <= event_time <= now + timedelta(hours=24):
+        # Combine event_date and event_time to create a full datetime object
+        event_datetime = datetime.fromisoformat(f"{event['event_date']}T{event['event_time']}")
+        if now <= event_datetime <= now + timedelta(hours=24):
             upcoming_events.append(event)
 
     # Send notifications for upcoming events
     for event in upcoming_events:
-        message = f"Reminder: You have an upcoming event - {event['title']} at {event['start_time']}."
+        message = f"Reminder: You have an upcoming event - {event['title']} on {event['event_date']} at {event['event_time']}."
         send_notification(user_id, message)
 
     return jsonify({"success": True, "upcoming_events": upcoming_events})
@@ -68,7 +75,7 @@ def check_conflicts():
     for conflict in conflicts:
         event1 = conflict['event1']
         event2 = conflict['event2']
-        message = f"Conflict detected: {event1['title']} at {event1['start_time']} overlaps with {event2['title']} at {event2['start_time']}."
+        message = f"Conflict detected: {event1['title']} on {event1['event_date']} at {event1['event_time']} overlaps with {event2['title']} on {event2['event_date']} at {event2['event_time']}."
         send_notification(user_id, message)
 
     return jsonify({"success": True, "conflicts": conflicts})
@@ -77,6 +84,14 @@ def check_conflicts():
 @app.route('/add_event', methods=['POST'])
 def add_event():
     data = request.json
+
+    # Validate required fields
+    required_fields = ['user_id', 'title', 'event_date', 'event_time']
+    for field in required_fields:
+        if field not in data:
+            return jsonify({"error": f"{field} is required"}), 400
+
+    # Add the event to the in-memory list
     events.append(data)
     return jsonify({"success": True, "event": data})
 
