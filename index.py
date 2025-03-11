@@ -11,6 +11,15 @@ def send_notification(user_id, message):
     print(f"Sending notification to user {user_id}: {message}")
     # In a real application, integrate with an email/SMS service like Twilio or SendGrid.
 
+# Helper function to check if two events overlap
+def events_overlap(event1, event2):
+    event1_start = datetime.fromisoformat(f"{event1['event_date']}T{event1['event_time']}")
+    event1_end = event1_start + timedelta(hours=1)  # Assuming each event lasts 1 hour
+    event2_start = datetime.fromisoformat(f"{event2['event_date']}T{event2['event_time']}")
+    event2_end = event2_start + timedelta(hours=1)  # Assuming each event lasts 1 hour
+
+    return not (event1_end <= event2_start or event1_start >= event2_end)
+
 # Event Notification Microservice
 @app.route('/check_upcoming_events', methods=['POST'])
 def check_upcoming_events():
@@ -45,25 +54,24 @@ def check_conflicts():
     data = request.json
 
     # Validate required fields
-    if "conflicts" not in data:
-        return jsonify({"error": "conflicts field is required"}), 400
+    if "existing_events" not in data or "new_event" not in data:
+        return jsonify({"error": "existing_events and new_event fields are required"}), 400
 
-    conflicts = data.get("conflicts", [])
+    existing_events = data.get("existing_events", [])
+    new_event = data.get("new_event", {})
 
-    # Log the conflicts (or send notifications)
-    for conflict in conflicts:
-        event1 = conflict.get("event1", {})
-        event2 = conflict.get("event2", {})
-        message = f"Conflict detected: {event1.get('title')} on {event1.get('event_date')} at {event1.get('event_time')} overlaps with {event2.get('title')} on {event2.get('event_date')} at {event2.get('event_time')}."
-        print(message)  # Log the conflict (replace with actual notification logic)
+    # Check for conflicts between the new event and existing events
+    conflicts = []
+    for existing_event in existing_events:
+        if events_overlap(new_event, existing_event):
+            conflicts.append(existing_event)
 
-    # Return a success response
+    # Return the conflicting events
     return jsonify({
         "success": True,
         "message": "Conflicts processed successfully.",
         "conflicts": conflicts
     })
-
 
 if __name__ == '__main__':
     app.run(debug=True)
