@@ -47,7 +47,7 @@ def check_upcoming_events():
         message = f"Reminder: You have an upcoming event - {event['title']} on {event['event_date']} at {event['event_time']}."
         send_notification(user_id, message)
 
-    return jsonify({"success": True, "upcoming_events": upcoming_events})
+    return jsonify({"success": True, "upcoming_events": message})
 
 # Conflict Resolution Microservice
 @app.route('/check_conflicts', methods=['POST'])
